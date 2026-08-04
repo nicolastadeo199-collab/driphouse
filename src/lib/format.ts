@@ -6,9 +6,11 @@ export function formatPrice(price: number) {
   }).format(price);
 }
 
-export function parseSizes(sizes: string) {
-  return sizes
-    .split(",")
-    .map((size) => size.trim())
-    .filter(Boolean);
+export function formatLeadTime(minDays?: number | null, maxDays?: number | null) {
+  if (!minDays && !maxDays) return "A pedido";
+  if (minDays && maxDays && minDays !== maxDays) {
+    return `A pedido · llega en ${minDays}-${maxDays} días`;
+  }
+  const days = minDays ?? maxDays;
+  return `A pedido · llega en ${days} días`;
 }

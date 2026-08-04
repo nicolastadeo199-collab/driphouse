@@ -1,6 +1,6 @@
 # DripHouse — Roadmap priorizado
 
-Estado: v1 · Propuesta de orden de implementación. Prioriza impacto en UX/conversión sobre esfuerzo, pero respeta dependencias técnicas (no se puede especificar el selector de talle con stock si el modelo de datos no tiene stock por talle).
+Estado: v2 · Fases 0-5 implementadas y validadas en navegador. Prioriza impacto en UX/conversión sobre esfuerzo, pero respeta dependencias técnicas (no se puede especificar el selector de talle con stock si el modelo de datos no tiene stock por talle).
 
 Cada fase se implementa y se valida en el navegador antes de pasar a la siguiente (`IMPLEMENTATION_RULES.md` §7). Este documento no incluye código — es la base para pedir "arrancá con la Fase 1" o similar.
 
@@ -12,7 +12,7 @@ PRD, Brand Guidelines, Design System, UI Components Spec, Frontend Architecture,
 
 ---
 
-## Fase 1 — Fundaciones (bloquea todo lo demás)
+## Fase 1 — Fundaciones ✅ implementado
 
 **Por qué primero:** casi todos los requisitos funcionales del brief (filtro por talle real, badge de últimas unidades, indicador de encargo, guía de talles) dependen de datos que hoy no existen en el modelo (`brand`, `availability`, stock por talle). Sin esto, cualquier UI nueva sería cosmética sobre datos falsos.
 
@@ -25,7 +25,7 @@ PRD, Brand Guidelines, Design System, UI Components Spec, Frontend Architecture,
 
 ---
 
-## Fase 2 — Catálogo y descubrimiento
+## Fase 2 — Catálogo y descubrimiento ✅ implementado
 
 **Por qué segundo:** es donde el 100% del tráfico entra (desde Instagram). Mejorar acá tiene el mayor volumen de impacto.
 
@@ -38,7 +38,7 @@ PRD, Brand Guidelines, Design System, UI Components Spec, Frontend Architecture,
 
 ---
 
-## Fase 3 — Página de producto (PDP)
+## Fase 3 — Página de producto (PDP) ✅ implementado
 
 **Por qué tercero:** es donde se resuelve la decisión de contactar o no — el momento de mayor payoff por sesión, pero depende de Fase 1 (stock real) y se beneficia de Fase 2 (badges ya definidos, reutilizables acá).
 
@@ -53,7 +53,7 @@ PRD, Brand Guidelines, Design System, UI Components Spec, Frontend Architecture,
 
 ---
 
-## Fase 4 — Confianza contextual
+## Fase 4 — Confianza contextual ✅ implementado
 
 - Componente reutilizable de info de envío/retiro/tiempos, insertado en `/info` (ya existe el contenido) y en la PDP de productos `MADE_TO_ORDER` (dato ya disponible desde Fase 1, solo falta la superficie visual).
 
@@ -61,7 +61,7 @@ PRD, Brand Guidelines, Design System, UI Components Spec, Frontend Architecture,
 
 ---
 
-## Fase 5 — SEO, performance y accesibilidad (hardening)
+## Fase 5 — SEO, performance y accesibilidad (hardening) ✅ implementado (ver nota de medición real más abajo)
 
 - JSON-LD `Product` por página de producto (precio, disponibilidad, marca) — impacto directo en indexación de Google y en cómo se ve el link al compartirse.
 - Metadata Open Graph completa (título/imagen al compartir en WhatsApp/Instagram — actualmente básica).
@@ -80,6 +80,16 @@ PRD, Brand Guidelines, Design System, UI Components Spec, Frontend Architecture,
 
 ---
 
-## Cómo seguir
+## Estado real vs. medición pendiente
 
-Decime con qué fase arrancamos (recomendación: **Fase 1**, porque todo lo demás depende de ella) y la implemento de punta a punta — schema, admin, y donde aplique, la UI pública — validando en el navegador antes de pasar a la siguiente.
+Todo lo de arriba está implementado y probado en navegador (desktop y mobile) sobre datos de ejemplo. Lo que queda pendiente porque depende de tener el sitio deployado con tráfico real, no de código:
+
+- Medición real de Core Web Vitals (Lighthouse) con el dominio productivo.
+- Validación de JSON-LD/Open Graph con las herramientas de Google/Meta una vez que `NEXT_PUBLIC_SITE_URL` apunte al dominio real.
+- Auditoría de contraste con el logo/fotos de producto reales (la evaluada hasta ahora es sobre placeholders).
+
+## Próximos pasos posibles (no priorizados, a demanda)
+
+- Stock por talle con alertas cuando se acerca a cero.
+- Reviews, una vez exista un proceso real de recolección.
+- Analítica de "búsquedas sin resultado" para detectar demanda no cubierta (ver `PRD.md` §9).

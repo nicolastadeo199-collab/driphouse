@@ -1,8 +1,10 @@
-export function buildWhatsAppLink(productName?: string) {
+export function buildWhatsAppLink(productName?: string, size?: string | null) {
   const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
-  const baseMessage = productName
-    ? `Hola! Quiero consultar por "${productName}"`
-    : "Hola! Quiero hacer una consulta";
+  let baseMessage = "Hola! Quiero hacer una consulta";
+  if (productName) {
+    baseMessage = `Hola! Quiero consultar por "${productName}"`;
+    if (size) baseMessage += ` (talle ${size})`;
+  }
   const message = encodeURIComponent(baseMessage);
   return `https://wa.me/${number}?text=${message}`;
 }

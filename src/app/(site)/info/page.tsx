@@ -1,9 +1,10 @@
 import { buildInstagramLink } from "@/lib/whatsapp";
 import ContactButtons from "@/components/ContactButtons";
+import ShippingInfo from "@/components/ShippingInfo";
 
 export const metadata = {
-  title: "Info | DripHouse",
-  description: "Horarios de atencion y datos de contacto de DripHouse.",
+  title: "Info",
+  description: "Horarios de atencion, envio, retiro y datos de contacto de DripHouse.",
 };
 
 export default function InfoPage() {
@@ -13,17 +14,9 @@ export default function InfoPage() {
     <div className="mx-auto max-w-2xl px-4 py-12">
       <h1 className="font-graffiti text-4xl text-accent text-glow">Info</h1>
 
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold text-foreground">Horarios de atención</h2>
-        <ul className="mt-3 space-y-1 text-sm text-muted">
-          <li>
-            <span className="text-foreground">Lunes a Viernes:</span> 12:00 a 20:00 hs
-          </li>
-          <li>
-            <span className="text-foreground">Sábados:</span> 16:00 a 00:00 hs
-          </li>
-        </ul>
-      </section>
+      <div className="mt-8">
+        <ShippingInfo />
+      </div>
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold text-foreground">Contacto</h2>

@@ -1,9 +1,13 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { formatPrice, parseSizes } from "@/lib/format";
+import { formatPrice } from "@/lib/format";
 import ProductGallery from "@/components/ProductGallery";
-import ContactButtons from "@/components/ContactButtons";
+import ProductDetailInteractive from "@/components/ProductDetailInteractive";
+import AvailabilityIndicator from "@/components/AvailabilityIndicator";
+import ShippingInfo from "@/components/ShippingInfo";
 import ProductCard from "@/components/ProductCard";
+import Badge from "@/components/ui/Badge";
+import { getProductBadge } from "@/lib/badges";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +19,7 @@ async function getProduct(slug: string) {
     where: { slug },
     include: {
       images: { orderBy: { order: "asc" } },
+      variants: true,
       category: true,
     },
   });
@@ -24,9 +29,18 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) return {};
+
+  const image = product.images[0]?.url;
+
   return {
-    title: `${product.name} | DripHouse`,
+    title: product.name,
     description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      type: "website",
+      images: image ? [{ url: image }] : undefined,
+    },
   };
 }
 
@@ -38,52 +52,83 @@ export default async function ProductPage({ params }: { params: Params }) {
     notFound();
   }
 
-  const sizes = parseSizes(product.sizes);
   const soldOut = product.status === "SOLD_OUT";
+  const badge = getProductBadge(product);
 
   const related = await prisma.product.findMany({
     where: {
       categoryId: product.categoryId,
       id: { not: product.id },
     },
-    include: { images: { orderBy: { order: "asc" }, take: 1 } },
+    include: {
+      images: { orderBy: { order: "asc" }, take: 2 },
+      variants: { select: { size: true, stock: true } },
+    },
     orderBy: { createdAt: "desc" },
     take: 4,
   });
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.images.map((img) => img.url),
+    brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
+    url: siteUrl ? `${siteUrl}/producto/${product.slug}` : undefined,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "ARS",
+      price: product.price,
+      availability: soldOut
+        ? "https://schema.org/OutOfStock"
+        : product.availability === "MADE_TO_ORDER"
+          ? "https://schema.org/PreOrder"
+          : "https://schema.org/InStock",
+    },
+  };
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-8 pb-24 md:pb-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <div className="grid gap-8 md:grid-cols-2">
         <ProductGallery images={product.images} productName={product.name} />
 
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">
-            {product.category.name}
-          </p>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+            <span>{product.category.name}</span>
+            {product.brand && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{product.brand}</span>
+              </>
+            )}
+            {product.color && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{product.color}</span>
+              </>
+            )}
+          </div>
+
           <h1 className="mt-1 text-2xl font-semibold text-foreground">{product.name}</h1>
           <p className="mt-2 text-2xl font-bold text-accent">{formatPrice(product.price)}</p>
 
-          {soldOut && (
-            <span className="mt-3 inline-block rounded bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
-              Agotado
-            </span>
-          )}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {badge && <Badge variant={badge} />}
+            <AvailabilityIndicator
+              availability={product.availability}
+              leadTimeMinDays={product.leadTimeMinDays}
+              leadTimeMaxDays={product.leadTimeMaxDays}
+            />
+          </div>
 
-          {sizes.length > 0 && (
-            <div className="mt-5">
-              <p className="mb-2 text-sm font-medium text-muted">Talles disponibles</p>
-              <div className="flex flex-wrap gap-2">
-                {sizes.map((size) => (
-                  <span
-                    key={size}
-                    className="rounded border border-border px-3 py-1 text-sm text-foreground"
-                  >
-                    {size}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+          {product.availability === "MADE_TO_ORDER" && <ShippingInfo variant="compact" />}
 
           <div className="mt-5">
             <p className="mb-2 text-sm font-medium text-muted">Descripción</p>
@@ -92,9 +137,11 @@ export default async function ProductPage({ params }: { params: Params }) {
             </p>
           </div>
 
-          <div className="mt-8">
-            <ContactButtons productName={product.name} />
-          </div>
+          <ProductDetailInteractive
+            productName={product.name}
+            variants={product.variants.map((v) => ({ size: v.size, stock: soldOut ? 0 : v.stock }))}
+            sizeGuideNote={product.sizeGuideNote}
+          />
         </div>
       </div>
 

@@ -7,6 +7,29 @@ import { createAdminSession, destroyAdminSession, verifyAdminCredentials } from 
 import { deleteUploadedImage, saveUploadedImage } from "@/lib/upload";
 import { uniqueCategorySlug, uniqueProductSlug } from "@/lib/slug";
 
+function parseVariants(formData: FormData) {
+  const sizes = formData.getAll("variantSize").map(String);
+  const stocks = formData.getAll("variantStock").map(String);
+
+  return sizes
+    .map((size, i) => ({ size: size.trim(), stock: Number(stocks[i] ?? 0) }))
+    .filter((v) => v.size.length > 0);
+}
+
+function parseAvailabilityFields(formData: FormData) {
+  const availability = formData.get("availability") === "MADE_TO_ORDER" ? "MADE_TO_ORDER" : "IN_STOCK";
+  const leadTimeMinDaysRaw = formData.get("leadTimeMinDays");
+  const leadTimeMaxDaysRaw = formData.get("leadTimeMaxDays");
+
+  return {
+    availability,
+    leadTimeMinDays:
+      availability === "MADE_TO_ORDER" && leadTimeMinDaysRaw ? Number(leadTimeMinDaysRaw) : null,
+    leadTimeMaxDays:
+      availability === "MADE_TO_ORDER" && leadTimeMaxDaysRaw ? Number(leadTimeMaxDaysRaw) : null,
+  };
+}
+
 export async function loginAction(_prevState: { error?: string } | undefined, formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
@@ -36,8 +59,12 @@ export async function createProductAction(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const price = Number(formData.get("price") ?? 0);
   const categoryId = String(formData.get("categoryId") ?? "");
-  const sizes = String(formData.get("sizes") ?? "").trim();
+  const brand = String(formData.get("brand") ?? "").trim() || null;
+  const color = String(formData.get("color") ?? "").trim() || null;
+  const sizeGuideNote = String(formData.get("sizeGuideNote") ?? "").trim() || null;
   const status = formData.get("status") === "SOLD_OUT" ? "SOLD_OUT" : "AVAILABLE";
+  const { availability, leadTimeMinDays, leadTimeMaxDays } = parseAvailabilityFields(formData);
+  const variants = parseVariants(formData);
   const imageFiles = formData.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);
 
   if (!name || !categoryId) {
@@ -54,10 +81,18 @@ export async function createProductAction(formData: FormData) {
       description,
       price,
       categoryId,
-      sizes,
+      brand,
+      color,
+      sizeGuideNote,
       status,
+      availability,
+      leadTimeMinDays,
+      leadTimeMaxDays,
       images: {
         create: imageUrls.map((url, index) => ({ url, order: index })),
+      },
+      variants: {
+        create: variants,
       },
     },
   });
@@ -72,8 +107,12 @@ export async function updateProductAction(productId: string, formData: FormData)
   const description = String(formData.get("description") ?? "").trim();
   const price = Number(formData.get("price") ?? 0);
   const categoryId = String(formData.get("categoryId") ?? "");
-  const sizes = String(formData.get("sizes") ?? "").trim();
+  const brand = String(formData.get("brand") ?? "").trim() || null;
+  const color = String(formData.get("color") ?? "").trim() || null;
+  const sizeGuideNote = String(formData.get("sizeGuideNote") ?? "").trim() || null;
   const status = formData.get("status") === "SOLD_OUT" ? "SOLD_OUT" : "AVAILABLE";
+  const { availability, leadTimeMinDays, leadTimeMaxDays } = parseAvailabilityFields(formData);
+  const variants = parseVariants(formData);
   const imageFiles = formData.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);
   const removeImageIds = formData.getAll("removeImageIds").map(String);
 
@@ -104,8 +143,22 @@ export async function updateProductAction(productId: string, formData: FormData)
         description,
         price,
         categoryId,
-        sizes,
+        brand,
+        color,
+        sizeGuideNote,
         status,
+        availability,
+        leadTimeMinDays,
+        leadTimeMaxDays,
+      },
+    }),
+    prisma.productVariant.deleteMany({ where: { productId } }),
+    prisma.product.update({
+      where: { id: productId },
+      data: {
+        variants: {
+          create: variants,
+        },
       },
     }),
     ...(imagesToRemove.length

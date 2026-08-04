@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import ImageDropzone from "@/components/admin/ImageDropzone";
+import VariantEditor from "@/components/admin/VariantEditor";
+import Button from "@/components/ui/Button";
 
 type Category = { id: string; name: string };
 
@@ -10,21 +13,23 @@ type ProductDefaults = {
   description: string;
   price: number;
   categoryId: string;
-  sizes: string;
+  brand: string;
+  color: string;
   status: string;
+  availability: string;
+  leadTimeMinDays: number | null;
+  leadTimeMaxDays: number | null;
+  sizeGuideNote: string;
+  variants: { size: string; stock: number }[];
   images: { id: string; url: string }[];
 };
 
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded bg-accent px-6 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
-    >
+    <Button type="submit" disabled={pending}>
       {pending ? "Guardando..." : label}
-    </button>
+    </Button>
   );
 }
 
@@ -39,6 +44,8 @@ export default function ProductForm({
   defaults?: Partial<ProductDefaults>;
   submitLabel: string;
 }) {
+  const [availability, setAvailability] = useState(defaults?.availability ?? "IN_STOCK");
+
   return (
     <form action={action} className="flex max-w-2xl flex-col gap-5">
       <div>
@@ -52,6 +59,33 @@ export default function ProductForm({
           defaultValue={defaults?.name}
           className="w-full rounded border border-border bg-background-elevated px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="brand" className="mb-1 block text-sm text-muted">
+            Marca
+          </label>
+          <input
+            id="brand"
+            name="brand"
+            placeholder="Ej: DripHouse, Nike, etc."
+            defaultValue={defaults?.brand}
+            className="w-full rounded border border-border bg-background-elevated px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          />
+        </div>
+        <div>
+          <label htmlFor="color" className="mb-1 block text-sm text-muted">
+            Color
+          </label>
+          <input
+            id="color"
+            name="color"
+            placeholder="Ej: Negro"
+            defaultValue={defaults?.color}
+            className="w-full rounded border border-border bg-background-elevated px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -95,32 +129,89 @@ export default function ProductForm({
       </div>
 
       <div>
-        <label htmlFor="sizes" className="mb-1 block text-sm text-muted">
-          Talles disponibles (opcional, separados por coma)
+        <label className="mb-1 block text-sm text-muted">Talles y stock</label>
+        <VariantEditor defaultVariants={defaults?.variants ?? []} />
+      </div>
+
+      <div>
+        <label htmlFor="sizeGuideNote" className="mb-1 block text-sm text-muted">
+          Nota de guía de talles (opcional)
         </label>
-        <input
-          id="sizes"
-          name="sizes"
-          placeholder="S, M, L, XL"
-          defaultValue={defaults?.sizes}
+        <textarea
+          id="sizeGuideNote"
+          name="sizeGuideNote"
+          rows={2}
+          placeholder="Ej: Oversize, si dudás elegí el talle más chico."
+          defaultValue={defaults?.sizeGuideNote}
           className="w-full rounded border border-border bg-background-elevated px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
       </div>
 
-      <div>
-        <label htmlFor="status" className="mb-1 block text-sm text-muted">
-          Estado
-        </label>
-        <select
-          id="status"
-          name="status"
-          defaultValue={defaults?.status ?? "AVAILABLE"}
-          className="w-full rounded border border-border bg-background-elevated px-3 py-2 text-sm focus:border-accent focus:outline-none"
-        >
-          <option value="AVAILABLE">Disponible</option>
-          <option value="SOLD_OUT">Agotado</option>
-        </select>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="status" className="mb-1 block text-sm text-muted">
+            Estado
+          </label>
+          <select
+            id="status"
+            name="status"
+            defaultValue={defaults?.status ?? "AVAILABLE"}
+            className="w-full rounded border border-border bg-background-elevated px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          >
+            <option value="AVAILABLE">Disponible</option>
+            <option value="SOLD_OUT">Agotado</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="availability" className="mb-1 block text-sm text-muted">
+            Disponibilidad
+          </label>
+          <select
+            id="availability"
+            name="availability"
+            value={availability}
+            onChange={(e) => setAvailability(e.target.value)}
+            className="w-full rounded border border-border bg-background-elevated px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          >
+            <option value="IN_STOCK">Stock inmediato</option>
+            <option value="MADE_TO_ORDER">A pedido</option>
+          </select>
+        </div>
       </div>
+
+      {availability === "MADE_TO_ORDER" && (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="leadTimeMinDays" className="mb-1 block text-sm text-muted">
+              Entrega mínima (días)
+            </label>
+            <input
+              id="leadTimeMinDays"
+              name="leadTimeMinDays"
+              type="number"
+              min={0}
+              step="1"
+              defaultValue={defaults?.leadTimeMinDays ?? undefined}
+              className="w-full rounded border border-border bg-background-elevated px-3 py-2 text-sm focus:border-accent focus:outline-none"
+            />
+          </div>
+          <div>
+            <label htmlFor="leadTimeMaxDays" className="mb-1 block text-sm text-muted">
+              Entrega máxima (días)
+            </label>
+            <input
+              id="leadTimeMaxDays"
+              name="leadTimeMaxDays"
+              type="number"
+              min={0}
+              step="1"
+              defaultValue={defaults?.leadTimeMaxDays ?? undefined}
+              className="w-full rounded border border-border bg-background-elevated px-3 py-2 text-sm focus:border-accent focus:outline-none"
+            />
+          </div>
+        </div>
+      )}
 
       <div>
         <label htmlFor="description" className="mb-1 block text-sm text-muted">

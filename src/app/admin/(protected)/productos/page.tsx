@@ -83,6 +83,8 @@ export default async function AdminProductsPage({
                   </Link>
                 </th>
               ))}
+              <th className="px-3 py-3">Marca</th>
+              <th className="px-3 py-3">Disponibilidad</th>
               <th className="px-3 py-3 text-right">Acciones</th>
             </tr>
           </thead>
@@ -110,6 +112,18 @@ export default async function AdminProductsPage({
                     {product.status === "AVAILABLE" ? "Disponible" : "Agotado"}
                   </span>
                 </td>
+                <td className="px-3 py-2 text-muted">{product.brand ?? "—"}</td>
+                <td className="px-3 py-2">
+                  <span
+                    className={`rounded px-2 py-0.5 text-xs font-medium ${
+                      product.availability === "MADE_TO_ORDER"
+                        ? "bg-warning/15 text-warning"
+                        : "text-muted"
+                    }`}
+                  >
+                    {product.availability === "MADE_TO_ORDER" ? "A pedido" : "Stock inmediato"}
+                  </span>
+                </td>
                 <td className="px-3 py-2 text-right">
                   <div className="flex justify-end gap-3">
                     <Link
@@ -126,7 +140,7 @@ export default async function AdminProductsPage({
 
             {products.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-10 text-center text-muted">
+                <td colSpan={9} className="px-3 py-10 text-center text-muted">
                   Todavia no cargaste productos.
                 </td>
               </tr>

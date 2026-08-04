@@ -2,6 +2,8 @@
 
 Sitio web para **DripHouse**, reseller de streetwear (stock, encargos y trends). Catálogo público sin pasarela de pago (la compra se resuelve por WhatsApp/Instagram) + panel de administración privado para cargar productos sin tocar código.
 
+Este proyecto sigue los documentos de producto/diseño/arquitectura en [`docs/`](./docs) (PRD, Brand Guidelines, Design System, UI Components, Frontend Architecture, Implementation Rules, Roadmap) como fuente de verdad — cualquier cambio nuevo se evalúa contra esos criterios antes de implementarse.
+
 ## Stack
 
 - **Next.js 16 (App Router) + TypeScript + Tailwind CSS v4**
@@ -12,8 +14,10 @@ Sitio web para **DripHouse**, reseller de streetwear (stock, encargos y trends).
 ## Estructura de carpetas
 
 ```
+docs/                    # PRD, Brand Guidelines, Design System, UI Components,
+                         # Frontend Architecture, Implementation Rules, Roadmap
 prisma/
-  schema.prisma        # modelos: Category, Product, ProductImage
+  schema.prisma        # modelos: Category, Product, ProductVariant (talle+stock), ProductImage
   seed.ts               # datos de ejemplo (categorías + productos placeholder)
 src/
   app/
@@ -27,9 +31,10 @@ src/
       actions.ts          # todas las acciones del admin (crear/editar/borrar)
       (protected)/         # rutas que requieren sesión (productos, categorías)
     uploads/[filename]/    # sirve las imágenes subidas desde el admin
-  components/             # UI del sitio público
-  components/admin/       # UI del panel (formularios, tabla, dropzone)
-  lib/                    # prisma client, auth, upload, helpers
+  components/             # UI del sitio público (catálogo, PDP, header/buscador, etc.)
+  components/admin/       # UI del panel (formularios, tabla, dropzone, talles/stock)
+  components/ui/          # primitivos compartidos (Button, Badge, Chip, Modal, Skeleton)
+  lib/                    # prisma client, auth, upload, helpers, badges
   proxy.ts                 # protege /admin y /api/admin (antes "middleware")
 ```
 
@@ -48,6 +53,7 @@ src/
    - `AUTH_SECRET`: cualquier texto largo y random. Generalo con `openssl rand -base64 32`.
    - `NEXT_PUBLIC_WHATSAPP_NUMBER`: tu número real en formato internacional sin signos (ej `5491122334455`).
    - `NEXT_PUBLIC_INSTAGRAM_USER`: tu usuario de Instagram sin `@` (ya viene con `driphouse_store_`).
+   - `NEXT_PUBLIC_SITE_URL`: la URL pública del sitio ya deployado (sin barra final). Se usa para el SEO (Open Graph y JSON-LD de cada producto). Dejala vacía en local.
 3. Creá la base de datos y cargá los productos de ejemplo:
    ```bash
    npx prisma migrate dev
@@ -61,11 +67,18 @@ src/
 
 ## Usar el panel de administración
 
-- **Productos** (`/admin/productos`): tabla con todos los productos, ordenable por nombre, categoría, precio, estado o fecha de carga (click en cada columna). Desde ahí editás, borrás o cargás uno nuevo.
-- **Nuevo producto / Editar producto**: formulario con nombre, precio, categoría, talles (opcional, separados por coma), estado (disponible/agotado), descripción y fotos. Las fotos se cargan arrastrándolas al recuadro punteado o haciendo click para elegirlas desde la compu o el celu. En edición podés sacar fotos existentes con la ✕ y agregar nuevas.
+- **Productos** (`/admin/productos`): tabla con todos los productos (foto, marca, disponibilidad, estado), ordenable por nombre, categoría, precio, estado o fecha de carga (click en cada columna). Desde ahí editás, borrás o cargás uno nuevo.
+- **Nuevo producto / Editar producto**: formulario con nombre, marca, color, precio, categoría, **talles con stock individual por talle** (agregás las filas que necesites con "+ Agregar talle"), nota de guía de talles (opcional), estado (disponible/agotado), disponibilidad (**stock inmediato** o **a pedido** con días estimados de entrega), descripción y fotos. Las fotos se cargan arrastrándolas al recuadro punteado o haciendo click para elegirlas desde la compu o el celu. En edición podés sacar fotos existentes con la ✕ y agregar nuevas.
 - **Categorías** (`/admin/categorias`): son 100% editables — agregás las que necesites (Remeras, Buzos, Pantalones, Accesorios, etc.) y las que tengan productos cargados no se pueden borrar hasta mover o eliminar esos productos primero.
 
 Todo se refleja al instante en el catálogo público, no hace falta ningún redeploy para cargar productos nuevos.
+
+## Qué incluye el catálogo público
+
+- **Buscador con autosugerencia** en el header (productos + categorías, sin recargar la página).
+- **Filtros instantáneos** por categoría, talle y rango de precio, con contador de resultados en vivo, y orden por novedad o precio.
+- **Badges automáticos**: "Nuevo" (cargado hace ≤14 días), "Últimas unidades" (stock bajo), "Encargo", "Agotado" — se calculan solos a partir del stock y la fecha de carga, no hay que tildar nada extra.
+- **Página de producto**: galería con zoom, selector de talle mostrando stock real (sin stock queda tachado, nunca se oculta), indicador de "Stock inmediato" o "A pedido · llega en X-Y días", guía de talles en modal, botón de WhatsApp/Instagram fijo abajo en mobile al scrollear, y el talle elegido se incluye en el mensaje de WhatsApp.
 
 ## El logo real
 

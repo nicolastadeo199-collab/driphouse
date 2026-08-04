@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 
 export default function ProductGallery({
@@ -11,6 +11,7 @@ export default function ProductGallery({
   productName: string;
 }) {
   const [active, setActive] = useState(0);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   if (images.length === 0) {
     return (
@@ -22,7 +23,12 @@ export default function ProductGallery({
 
   return (
     <div>
-      <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-black">
+      <button
+        type="button"
+        onClick={() => dialogRef.current?.showModal()}
+        aria-label="Ampliar foto"
+        className="relative block aspect-square w-full cursor-zoom-in overflow-hidden rounded-lg border border-border bg-black"
+      >
         <Image
           src={images[active].url}
           alt={productName}
@@ -31,7 +37,7 @@ export default function ProductGallery({
           className="object-cover"
           priority
         />
-      </div>
+      </button>
 
       {images.length > 1 && (
         <div className="mt-3 flex gap-2 overflow-x-auto scrollbar-thin">
@@ -49,6 +55,35 @@ export default function ProductGallery({
           ))}
         </div>
       )}
+
+      <dialog
+        ref={dialogRef}
+        onClick={(e) => {
+          if (e.target === dialogRef.current) dialogRef.current?.close();
+        }}
+        className="m-auto max-h-[90vh] w-[min(90vw,900px)] rounded-lg border border-border bg-background p-0 backdrop:bg-black/85"
+      >
+        <div className="relative flex items-center justify-between border-b border-border px-4 py-3">
+          <span className="text-sm text-muted">{productName}</span>
+          <button
+            type="button"
+            onClick={() => dialogRef.current?.close()}
+            aria-label="Cerrar"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:text-accent"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="relative aspect-square w-full">
+          <Image
+            src={images[active].url}
+            alt={productName}
+            fill
+            sizes="90vw"
+            className="object-contain"
+          />
+        </div>
+      </dialog>
     </div>
   );
 }

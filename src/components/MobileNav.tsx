@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import SearchAutosuggest from "@/components/SearchAutosuggest";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 type Category = {
   id: string;
@@ -9,11 +11,19 @@ type Category = {
   slug: string;
 };
 
-export default function MobileNav({ categories }: { categories: Category[] }) {
+type ProductHit = { slug: string; name: string; price: number; image?: string };
+
+export default function MobileNav({
+  categories,
+  products,
+}: {
+  categories: Category[];
+  products: ProductHit[];
+}) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="md:hidden">
+    <div>
       <button
         type="button"
         aria-label={open ? "Cerrar menu" : "Abrir menu"}
@@ -31,6 +41,7 @@ export default function MobileNav({ categories }: { categories: Category[] }) {
 
       {open && (
         <div className="fixed inset-x-0 top-[57px] z-30 border-b border-border bg-background px-4 py-4">
+          <SearchAutosuggest products={products} categories={categories} className="mb-4" />
           <nav className="flex flex-col gap-3 text-sm font-medium">
             <Link href="/" onClick={() => setOpen(false)} className="hover:text-accent">
               Catálogo
@@ -48,6 +59,15 @@ export default function MobileNav({ categories }: { categories: Category[] }) {
             <Link href="/info" onClick={() => setOpen(false)} className="hover:text-accent">
               Info
             </Link>
+            <a
+              href={buildWhatsAppLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="text-accent hover:opacity-80"
+            >
+              Consultar por WhatsApp
+            </a>
           </nav>
         </div>
       )}

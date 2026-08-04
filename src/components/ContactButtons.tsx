@@ -1,14 +1,20 @@
 import { buildInstagramLink, buildWhatsAppLink } from "@/lib/whatsapp";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 
-export default function ContactButtons({ productName }: { productName: string }) {
+export default function ContactButtons({
+  productName,
+  size,
+}: {
+  productName: string;
+  size?: string | null;
+}) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row">
       <a
-        href={buildWhatsAppLink(productName)}
+        href={buildWhatsAppLink(productName, size)}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3 font-semibold text-black transition-transform hover:scale-[1.02]"
+        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3 font-semibold text-accent-ink transition-transform hover:scale-[1.02]"
       >
         <WhatsAppIcon className="h-5 w-5" />
         Consultar por WhatsApp

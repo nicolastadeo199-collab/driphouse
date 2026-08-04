@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import ProductCard from "@/components/ProductCard";
-import CatalogFilters from "@/components/CatalogFilters";
-import type { Prisma } from "@prisma/client";
+import CatalogExplorer from "@/components/CatalogExplorer";
 
 export const dynamic = "force-dynamic";
 
@@ -14,22 +12,30 @@ export default async function HomePage({
 }) {
   const { categoria, q } = await searchParams;
 
-  const where: Prisma.ProductWhereInput = {};
-  if (categoria) {
-    where.category = { slug: categoria };
-  }
-  if (q) {
-    where.name = { contains: q };
-  }
-
   const [products, categories] = await Promise.all([
     prisma.product.findMany({
-      where,
-      include: { images: { orderBy: { order: "asc" }, take: 1 } },
+      include: {
+        images: { orderBy: { order: "asc" }, take: 2 },
+        variants: { select: { size: true, stock: true } },
+        category: { select: { slug: true } },
+      },
       orderBy: { createdAt: "desc" },
     }),
     prisma.category.findMany({ orderBy: { order: "asc" } }),
   ]);
+
+  const explorerProducts = products.map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    price: p.price,
+    status: p.status,
+    availability: p.availability,
+    createdAt: p.createdAt.toISOString(),
+    categorySlug: p.category.slug,
+    images: p.images,
+    variants: p.variants,
+  }));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -40,21 +46,12 @@ export default async function HomePage({
         </p>
       </div>
 
-      <div className="mb-6">
-        <CatalogFilters categories={categories} activeCategory={categoria} query={q} />
-      </div>
-
-      {products.length === 0 ? (
-        <p className="py-16 text-center text-muted">
-          No encontramos productos con esos filtros.
-        </p>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      )}
+      <CatalogExplorer
+        products={explorerProducts}
+        categories={categories}
+        initialCategorySlug={categoria}
+        initialQuery={q}
+      />
     </div>
   );
 }
