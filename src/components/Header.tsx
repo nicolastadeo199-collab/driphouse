@@ -3,12 +3,24 @@ import { prisma } from "@/lib/prisma";
 import Logo from "@/components/Logo";
 import MobileNav from "@/components/MobileNav";
 import SearchAutosuggest from "@/components/SearchAutosuggest";
+import MegaMenu from "@/components/MegaMenu";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 export default async function Header() {
-  const [categories, products] = await Promise.all([
-    prisma.category.findMany({ orderBy: { order: "asc" } }).catch(() => []),
+  const [categoriesWithThumb, products] = await Promise.all([
+    prisma.category
+      .findMany({
+        orderBy: { order: "asc" },
+        include: {
+          products: {
+            take: 1,
+            orderBy: { createdAt: "desc" },
+            include: { images: { take: 1, orderBy: { order: "asc" } } },
+          },
+        },
+      })
+      .catch(() => []),
     prisma.product
       .findMany({
         select: {
@@ -21,6 +33,14 @@ export default async function Header() {
       })
       .catch(() => []),
   ]);
+
+  const categories = categoriesWithThumb.map((c) => ({ id: c.id, name: c.name, slug: c.slug }));
+  const categoryTiles = categoriesWithThumb.map((c) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    image: c.products[0]?.images[0]?.url,
+  }));
 
   const productHits = products.map((p) => ({
     slug: p.slug,
@@ -40,15 +60,7 @@ export default async function Header() {
           <Link href="/" className="hover:text-accent transition-colors">
             Catálogo
           </Link>
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              href={`/?categoria=${category.slug}`}
-              className="hover:text-accent transition-colors"
-            >
-              {category.name}
-            </Link>
-          ))}
+          <MegaMenu categories={categoryTiles} />
           <Link href="/info" className="hover:text-accent transition-colors">
             Info
           </Link>

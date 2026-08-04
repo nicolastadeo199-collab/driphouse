@@ -12,9 +12,23 @@ Regla de fondo (de `IMPLEMENTATION_RULES.md`): antes de crear un componente nuev
 **Estados:** link activo (`text-accent`), hover.
 **Cambios del roadmap:** incorporar `SearchAutosuggest` (nuevo, ver abajo) entre logo y nav en desktop; en mobile, ícono de lupa que expande el mismo componente.
 
-### Sobre "Mega Menu" (pedido en el brief)
+## MegaMenu — Existe (`src/components/MegaMenu.tsx`)
 
-**No se especifica un Mega Menu.** Un mega menú se justifica con catálogos de decenas de subcategorías (moda de gran superficie tipo Zara/Uniqlo). DripHouse tiene 4-6 categorías planas. Un mega menú ahí agrega complejidad de mantenimiento (el admin tendría que gestionar jerarquías) y un click extra sin beneficio de UX medible. La nav plana actual + chips de filtro en el catálogo ya cubre el caso de uso. **Revisar esta decisión si el catálogo supera ~10 categorías o aparecen subcategorías reales** (ej. Remeras → Oversize/Fit).
+**Cambio de decisión:** la v1 de este documento argumentaba en contra de un mega menú por el tamaño chico del catálogo (4-6 categorías). El negocio revisó benchmark de referencia (Halara) y pidió explícitamente adoptar ese formato de navegación — se prioriza el pedido explícito sobre el juicio de UX por defecto. Implementado como panel desplegable (hover en desktop, click/tap accesible) con una tile por categoría (foto del producto más reciente de esa categoría + nombre), alineado a la derecha del trigger para no desbordar el viewport. Con 4-6 categorías el panel es una sola fila; si el catálogo crece más allá de ~10 categorías, pasar a grid multi-fila con scroll interno en vez de agrandar el panel indefinidamente.
+
+## CategoryTiles — Nuevo (`src/components/CategoryTiles.tsx`)
+
+**Propósito:** entrada visual rápida por categoría en la home, con foto real y label superpuesta (formato tomado de Halara: fila de tiles con imagen + nombre en mayúscula sobre gradiente). Fila horizontal con scroll nativo en mobile, sin wrap. Usa la misma foto "representativa" que `MegaMenu` (producto más reciente de la categoría).
+
+## FilterSidebar (dentro de CatalogExplorer) — Existe, formato actualizado
+
+**Cambio de formato:** los filtros de categoría/talle/precio, que antes vivían en una fila de chips arriba de la grilla, ahora viven en una sidebar izquierda fija en desktop (`md:grid-cols-[220px_1fr]`) — mismo patrón de Halara. En mobile colapsa detrás de un botón "Filtros (N)" que expande el mismo panel arriba de la grilla, sin duplicar markup entre mobile y desktop (una sola implementación, visibilidad controlada por breakpoint + estado).
+
+## Color Swatch Filter — Nuevo
+
+**Propósito:** filtrar por color con reconocimiento visual inmediato (círculo de color real), no solo texto — patrón directo de Halara.
+**Datos:** `Product.color` (texto libre cargado por el admin) se resuelve a un color de swatch vía `src/lib/colors.ts` (diccionario de nombres en español → hex, con fallback a gris neutro para colores no mapeados — nunca se inventa un color al azar).
+**Estados:** seleccionado (anillo `--accent` + escala 110%), hover (escala 105%), múltiple selección permitida (OR entre colores elegidos).
 
 ## SearchAutosuggest — Nuevo
 
