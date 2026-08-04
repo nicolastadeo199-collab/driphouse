@@ -39,16 +39,25 @@ La página de producto es el punto de mayor fricción/mayor payoff: cada dato qu
 
 ## 6. Arquitectura de información
 
+Barra de beneficios + Header (sticky, ambos) en todas las páginas del sitio público.
+
 ```
-Header (sticky): Logo · Buscador · Categorías · Info · WhatsApp
-├─ Catálogo (/)                    → filtros + grid + orden
-│   └─ Producto (/producto/[slug]) → galería + info + contacto + relacionados
-├─ Info (/info)                    → horarios, envío/retiro, contacto
+Barra de beneficios (envíos, originalidad, horarios)
+Header: Logo · Buscador · Home · Catálogo · Categorías (mega menu) · Info · WhatsApp
+├─ Home (/)                         → hero de marca + categorías destacadas + tendencias/
+│                                      curaduría + Club DripHouse + destacados (sin filtros,
+│                                      es portada — el catálogo completo vive en /catalogo)
+├─ Catálogo (/catalogo)             → mega menú, buscador, sidebar de filtros
+│                                      (categoría/color/talle/precio), grid + orden
+│   └─ Producto (/producto/[slug])  → galería + info + contacto + relacionados
+├─ Info (/info)                     → horarios, envío/retiro, contacto
 └─ Admin (/admin, protegido)
     ├─ Productos (alta/edición/baja, stock por talle, marca, disponibilidad)
     └─ Categorías (alta/baja)
-Footer: marca, horarios, Instagram, WhatsApp
+Footer: marca, navegación (Catálogo/Categorías/Info), contacto, horarios
 ```
+
+**Nota de cambio (v2):** la v1 de este documento tenía el catálogo completo viviendo en `/`. Se separó en una Home de marca (`/`) + Catálogo (`/catalogo`) siguiendo la jerarquía de información de Halara (barra de beneficios → hero → categorías → curaduría → comunidad → catálogo), adaptada al modelo sin carrito/checkout de DripHouse — sin copiar mecánicas de cupón/descuento que no aplican al negocio.
 
 ## 7. Requisitos funcionales (resumen — detalle en UI_COMPONENTS.md)
 

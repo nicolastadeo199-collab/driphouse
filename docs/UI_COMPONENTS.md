@@ -115,3 +115,18 @@ Regla de fondo (de `IMPLEMENTATION_RULES.md`): antes de crear un componente nuev
 ## Reviews — Fuera de alcance v1
 
 Pedido en el brief como componente mínimo, pero DripHouse no tiene hoy ningún mecanismo de recolección de reviews reales. Specear el componente sin la fuente de datos generaría presión para poblarlo con contenido falso, lo cual viola los valores de marca (`BRAND_GUIDELINES.md` §7, Originalidad/Transparencia). Se retoma cuando exista un proceso real de recolección (ej. pedir reseña por WhatsApp post-venta).
+
+## Home (`/`) — Nuevo (v2, restructuración de arquitectura de páginas)
+
+Separación de la Home de marca y el Catálogo completo (`/catalogo`), siguiendo la jerarquía de información de Halara adaptada al modelo de DripHouse. Componentes nuevos:
+
+- **BenefitsBar** (`src/components/BenefitsBar.tsx`): franja fija arriba de todo, sitewide (no solo Home) — envíos, originalidad, horarios. Rota un mensaje a la vez en mobile (intervalo de 3.5s, sin animación de transición, solo swap de texto), los tres en línea en desktop. Sin cupones ni countdowns falsos.
+- **Hero** (`src/components/home/Hero.tsx`): sección de marca (no de catálogo), CTA único a `/catalogo`. Placeholder de fondo con gradiente radial en tonos del acento (sin foto/video real todavía) — reemplazable por imagen real sin cambiar el layout.
+- **CategoryTiles** reusado en Home como "Categorías destacadas" (grid 4-6 columnas desktop, scroll en mobile) — mismo componente que ya usaba el mega menú, ahora también aquí.
+- **TrendsCuration** (`src/components/home/TrendsCuration.tsx`): 4 bloques editoriales. "Recién llegado" y "A pedido" están respaldados por datos reales (producto más nuevo / `availability=MADE_TO_ORDER` real). **"Lo más pedido" y "Elegidos por vos" son curaduría manual placeholder** — no existe todavía tracking de pedidos ni de votos del Club DripHouse, así que no se inventa esa métrica (mismo criterio que ya se aplicó para descartar "ordenar por más vendido" en `ROADMAP.md`). Revisar cuando exista esa data real.
+- **CommunityBanner** (`src/components/home/CommunityBanner.tsx`): CTA a WhatsApp con mensaje propio ("Club DripHouse"), fondo `--accent` sólido (único lugar del sitio que invierte fondo/texto respecto del resto — deliberado para que la franja de comunidad se distinga del resto del scroll).
+- **SectionHeading** (`src/components/SectionHeading.tsx`): encabezado de sección consistente (eyebrow + título graffiti), reusado en Categorías/Tendencias/Destacados para que se lean como bloques distintos, no como scroll continuo.
+- **Destacados**: reusa `ProductCard` directamente (sin componente nuevo), muestra los productos más nuevos con sus badges ya existentes. Se llama "Destacados", no "Bestsellers" — mismo motivo que "Lo más pedido" arriba.
+- **Breadcrumb** (`src/components/Breadcrumb.tsx`): `Home / Catálogo` o `Home / Catálogo / [Categoría]` en `/catalogo`, nuevo dado que ahora hay jerarquía real de páginas para mostrar.
+
+El header de `/catalogo` se compactó (antes tenía el mismo tamaño que un hero de portada; ahora esa página es una sección específica, no la entrada al sitio).

@@ -49,11 +49,11 @@ export default function SearchAutosuggest({
     : [];
   const allHits = [
     ...productHits.map((p) => ({ type: "product" as const, href: `/producto/${p.slug}` })),
-    ...categoryHits.map((c) => ({ type: "category" as const, href: `/?categoria=${c.slug}` })),
+    ...categoryHits.map((c) => ({ type: "category" as const, href: `/catalogo?categoria=${c.slug}` })),
   ];
 
   function submitSearch() {
-    router.push(`/?q=${encodeURIComponent(query.trim())}`);
+    router.push(`/catalogo?q=${encodeURIComponent(query.trim())}`);
     setOpen(false);
   }
 
@@ -106,7 +106,7 @@ export default function SearchAutosuggest({
           {allHits.length === 0 ? (
             <li className="px-3 py-4 text-sm text-muted">
               No encontramos nada con «{debouncedQuery}». Mirá el{" "}
-              <Link href="/" className="text-accent" onClick={() => setOpen(false)}>
+              <Link href="/catalogo" className="text-accent" onClick={() => setOpen(false)}>
                 catálogo completo
               </Link>
               .
@@ -135,7 +135,7 @@ export default function SearchAutosuggest({
                 return (
                   <li key={c.slug} role="option" aria-selected={activeIndex === idx}>
                     <Link
-                      href={`/?categoria=${c.slug}`}
+                      href={`/catalogo?categoria=${c.slug}`}
                       onClick={() => setOpen(false)}
                       className={`flex items-center gap-2 px-3 py-2 text-sm text-muted ${
                         activeIndex === idx ? "bg-accent/10" : "hover:bg-white/5"

@@ -46,7 +46,7 @@ export default function MegaMenu({ categories }: { categories: CategoryTile[] })
             {categories.map((category) => (
               <Link
                 key={category.id}
-                href={`/?categoria=${category.slug}`}
+                href={`/catalogo?categoria=${category.slug}`}
                 onClick={() => setOpen(false)}
                 className="group flex flex-col items-center gap-2"
               >

@@ -44,12 +44,15 @@ export default function MobileNav({
           <SearchAutosuggest products={products} categories={categories} className="mb-4" />
           <nav className="flex flex-col gap-3 text-sm font-medium">
             <Link href="/" onClick={() => setOpen(false)} className="hover:text-accent">
+              Home
+            </Link>
+            <Link href="/catalogo" onClick={() => setOpen(false)} className="hover:text-accent">
               Catálogo
             </Link>
             {categories.map((category) => (
               <Link
                 key={category.id}
-                href={`/?categoria=${category.slug}`}
+                href={`/catalogo?categoria=${category.slug}`}
                 onClick={() => setOpen(false)}
                 className="hover:text-accent"
               >
